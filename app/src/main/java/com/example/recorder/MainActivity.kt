@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.core.app.ActivityCompat
@@ -49,8 +50,6 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
     private var filename = ""
     private var isRecording=false
     private var isPaused = false
-
-
 
     //create the timer
     private lateinit var vibrator: Vibrator
@@ -110,7 +109,6 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
         }
 
         binding.btnList.setOnClickListener {
-            //todo
             //Toast.makeText(this,"List Button",Toast.LENGTH_SHORT).show()
             startActivity(Intent(this,GalleryActivity::class.java))
         }
@@ -119,7 +117,6 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
 
         binding.btnDone.setOnClickListener {
             stopRecorder()
-            Toast.makeText(this,"Audio Saved",Toast.LENGTH_SHORT).show()
             //bottomsheet visible
             binding.bottomSheetBG.visibility=View.VISIBLE
             bottomSheetBehavior.state=BottomSheetBehavior.STATE_EXPANDED
@@ -135,6 +132,7 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
         btnConfirm.setOnClickListener{
             dismiss()
             save()
+            Toast.makeText(this,"Audio Saved",Toast.LENGTH_SHORT).show()
 
         }
 
@@ -153,28 +151,69 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
 
     }
 
-    private fun save(){
-        val newfilename=filenameInput.text.toString()
-        if(newfilename != filename){
-            var newfile = File("$dirPath$newfilename.mp3")
-            File("$dirPath$filename.mp3").renameTo(newfile)
+    // Method to start AudioPlayerActivity with the necessary data
+    /*private fun playRecording() {
+        val intent = Intent(this, AudioPlayerActivity::class.java).apply {
+            putExtra("filepath", "$dirPath$filename.mp3")  // Path to the audio file
+            putExtra("filename", "$filename")  // Path to the filename
+            putExtra("ampsPath", "$dirPath$filename.amplitudes")  // Path to the amplitude data file
         }
-        var filePath = "$dirPath$newfilename.mp3"
+        startActivity(intent)
+    }*/
+
+    private fun save(){
+        val newFilename = filenameInput.text.toString()
+        if(newFilename != filename){
+            var newFile = File("$dirPath$newFilename.mp3")
+            File("$dirPath$filename.mp3").renameTo(newFile)
+        }
+
+        var filePath = "$dirPath$newFilename.mp3"
         var timestamp = Date().time
-        var ampsPath = "$dirPath$newfilename"
+        var ampsPath = "$dirPath$newFilename"
 
         try{
-            var fileoutputstrem = FileOutputStream(ampsPath)
-            var out = ObjectOutputStream(fileoutputstrem)
+            var fos = FileOutputStream(ampsPath)
+            var out = ObjectOutputStream(fos)
             out.writeObject(amplitudes)
-            fileoutputstrem.close()
+            fos.close()
             out.close()
-        }catch (e: IOException){}
+        }catch (e :IOException){}
 
-        var record=AudioRecord(newfilename,filePath,timestamp,duration,ampsPath)
+        var record = AudioRecord(newFilename, filePath, timestamp, duration, ampsPath)
+
         GlobalScope.launch {
             db.audioRecordDao().insert(record)
         }
+
+        /*val newFilename = filenameInput.text.toString()
+        val originalFilePath = "$dirPath$filename.mp3"
+        val newFilePath = "$dirPath$newFilename.mp3"
+        val ampsPath = "$dirPath$newFilename.amplitudes"
+
+        // Rename the audio file if the filename has been changed
+        if (newFilename != filename && newFilename.isNotEmpty()) {
+            File(originalFilePath).renameTo(File(newFilePath))
+        } else {
+            filename = newFilename // Update the filename to reflect the user's input
+        }
+
+        // Save the amplitude data
+        try {
+            FileOutputStream(ampsPath).use { fos ->
+                ObjectOutputStream(fos).use { oos ->
+                    oos.writeObject(amplitudes)
+                }
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        // Create and insert the record into the database
+        var record = AudioRecord(newFilename, newFilePath, Date().time, duration, ampsPath)
+        GlobalScope.launch {
+            db.audioRecordDao().insert(record)
+        }*/
     }
 
     private fun dismiss(){
@@ -217,16 +256,53 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
     }
 
     private fun startRecording(){
-        if(!permissionGranted){
-            ActivityCompat.requestPermissions(this,permission, REQUEST_CODE)
+        if (!permissionGranted) {
+            ActivityCompat.requestPermissions(this, permission, REQUEST_CODE)
             return
         }
-        //start recording
+
         recorder = MediaRecorder()
         dirPath = "${externalCacheDir?.absolutePath}/"
+
         var simpleDateFormat = SimpleDateFormat("yyyy.MM.DD_hh.mm.ss")
         var date = simpleDateFormat.format(Date())
-        filename= "audio_recorder_$date"
+        filename = "audio_record_$date"
+
+        recorder.apply{
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile("$dirPath$filename.mp3")
+
+            try {
+                prepare()
+            }catch (e: IOException){}
+
+            start()
+        }
+
+        binding.btnRecord.setImageResource(R.drawable.ic_pause)
+        isRecording = true
+        isPaused = false
+
+        timer.start()
+
+        binding.btnDelete.isClickable = true
+        binding.btnDelete.setImageResource(R.drawable.ic_delete)
+
+        binding.btnList.visibility = View.GONE
+        binding.btnDone.visibility = View.VISIBLE
+
+
+
+        /*// Prepare for a new recording
+        dirPath = "${externalCacheDir?.absolutePath}/"
+        filename = "audio_recorder_${SimpleDateFormat("yyyy.MM.dd_HH.mm.ss").format(Date())}"
+        amplitudes = ArrayList() // Initialize the amplitude list
+
+
+        //start recording
+        recorder = MediaRecorder()
         recorder.apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -248,7 +324,7 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
         binding.btnDelete.setImageResource(R.drawable.ic_delete)
 
         binding.btnList.visibility=View.GONE
-        binding.btnDone.visibility=View.VISIBLE
+        binding.btnDone.visibility=View.VISIBLE*/
 
     }
 
@@ -272,9 +348,18 @@ class MainActivity : AppCompatActivity(), Timer.OnTimerTickListener {
         binding.btnRecord.setImageResource(R.drawable.ic_record)
 
         binding.tvTimer.text="00:00.00"
+
+        // Clear the amplitude data and reset the waveform view
         amplitudes = binding.waveforView.clear()
 
+        // Save the recording and amplitude data
+        //save()
+    }
 
+    //handle recording completion for AudioPlayerActivity
+    private fun onRecordingCompleted() {
+        stopRecorder()
+        //playRecording()  // Call this method to start playback
     }
 
     override fun onTimerTick(duration: String) {

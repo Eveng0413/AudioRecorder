@@ -1,14 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".GalleryActivity">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolBar"
+                android:layout_width="match_parent"
+                android:layout_height="?actionBarSize"
+                app:title="Recordings"/>
+            <RelativeLayout
+                android:id="@+id/editBar"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingEnd="16dp"
+                android:paddingStart="16dp"
+                android:padding="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSelectAll"
+                        android:layout_width="140dp"
+                        android:layout_height="60dp"
+                        android:text="Select All"
+                        android:textSize="18dp"
+                        android:backgroundTint="@color/white"
+                        android:textColor="@color/andriodBlue"
+                        app:cornerRadius="26dp"
+                        app:rippleColor="@color/greyDark"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnClose"
+                        android:layout_width="140dp"
+                        android:layout_height="60dp"
+                        android:text="Close"
+                        android:textSize="18dp"
+                        android:backgroundTint="@color/white"
+                        android:textColor="@color/andriodBlue"
+                        app:cornerRadius="26dp"
+                        app:rippleColor="@color/andriodBlue"
+                        android:layout_alignParentEnd="true"/>
+            </RelativeLayout>
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+        
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:hintEnabled="false"
+            style="@style/SearchInputStyle">
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/search_input"
+                android:hint="Search Audio Recordings"
+                android:inputType="text"
+                android:textColor="@color/colorText"
+                android:textColorHint="@color/greyDark"
+                android:imeOptions="actionSearch"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+        
+    </com.google.android.material.appbar.AppBarLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerview"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    
+    <LinearLayout
+        android:id="@+id/bottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_hideable="true"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="16dp"
+        android:elevation="8dp"
+        android:background="@color/white">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginEnd="90dp">
+                <ImageButton
+                    android:id="@+id/btnDelete"
+                    android:clickable="false"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:backgroundTint="@color/greyDarkDisabled"
+                    android:background="@drawable/ic_round_delete"
+                    android:contentDescription="Button that deleted selected recordings"/>
+                <TextView
+                    android:id="@+id/tvDelete"
+                    android:textColor="@color/greyDarkDisabled"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Delete"/>
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginEnd="90dp">
+                <ImageButton
+                    android:id="@+id/btnEdit"
+                    android:clickable="false"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:backgroundTint="@color/greyDarkDisabled"
+                    android:background="@drawable/ic_round_edit"
+                    android:contentDescription="Button that rename selected recordings"/>
+                <TextView
+                    android:id="@+id/tvEdit"
+                    android:textColor="@color/greyDarkDisabled"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Edit"/>
+            </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+            <ImageButton
+                android:id="@+id/btnUpload"
+                android:clickable="false"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:backgroundTint="@color/greyDarkDisabled"
+                android:background="@drawable/ic_cloud_upload"
+                android:contentDescription="Button that upload selected recordings"/>
+            <TextView
+                android:id="@+id/tvUpload"
+                android:textColor="@color/greyDarkDisabled"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Upload"/>
+        </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -11,6 +11,16 @@ import java.text.SimpleDateFormat
 import java.util.Date
 
 class Adapter(var records: ArrayList<AudioRecord>, var listener: OnItemClickListener) : RecyclerView.Adapter<Adapter.ViewHolder>() {
+    private var editMode=false
+
+    fun isEditMode():Boolean{return editMode}
+    fun setEditMode(mode:Boolean){
+        if(editMode!=mode){
+            editMode=mode
+            notifyDataSetChanged()
+        }
+    }
+
     inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView), View.OnClickListener, View.OnLongClickListener {
         var tvFilename: TextView = itemView.findViewById(R.id.tvFilename)
         var tvMeta: TextView = itemView.findViewById(R.id.tvMeta)
@@ -22,18 +32,19 @@ class Adapter(var records: ArrayList<AudioRecord>, var listener: OnItemClickList
         }
 
         override fun onClick(v: View?) {
-            // Handle item click here
             val position = adapterPosition
-            if(position!=RecyclerView.NO_POSITION)
+            if(position != RecyclerView.NO_POSITION) {
                 listener.onItemClickListener(position)
+            }
         }
 
         override fun onLongClick(v: View?): Boolean {
-            // Handle item long click here
             val position = adapterPosition
-            if(position!=RecyclerView.NO_POSITION)
-                listener.onItemClickListener(position)
-            return true
+            if(position != RecyclerView.NO_POSITION) {
+                listener.onItemLongClickListener(position)
+                return true
+            }
+            return false
         }
     }
 
@@ -53,11 +64,19 @@ class Adapter(var records: ArrayList<AudioRecord>, var listener: OnItemClickList
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         if(position != RecyclerView.NO_POSITION){
             var record = records[position]
-            var sdf= SimpleDateFormat("dd/MM/yyy")
+            var sdf= SimpleDateFormat("MM/dd/yyyy")
             var date = Date(record.timestamp)
             var strDate = sdf.format(date)
             holder.tvFilename.text=record.filename
-            holder.tvMeta.text = "${record.duration}"
+            holder.tvMeta.text = "${record.duration} $strDate"
+
+            if(editMode){
+                holder.checkbox.visibility=View.VISIBLE
+                holder.checkbox.isChecked=record.isChecked
+            }else{
+                holder.checkbox.visibility=View.GONE
+                holder.checkbox.isChecked=false
+            }
 
         }
     }
